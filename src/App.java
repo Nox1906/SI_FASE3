@@ -13,7 +13,6 @@ public class App {
     private static App __instance = null;
     private String __connectionString;
     private HashMap<Option,DbWorker> __dbMethods;
-    private static final String SELECT_CMD = "select nome L3NG_1.COLONO";
     private enum Option
     {
         Unknown,
@@ -44,8 +43,8 @@ public class App {
     {
 
         con= DriverManager.getConnection(getConnectionString());
-        if(con != null)
-            con.close();
+        //if(con != null)
+        //    con.close();
 
     }
     private final static void clearConsole() throws Exception
@@ -58,15 +57,15 @@ public class App {
     {
         Login ();
         Option userInput = Option.Unknown;
+        clearConsole();
         do
         {
-            clearConsole();
             userInput = DisplayMenu();
             clearConsole();
             try
             {
                 __dbMethods.get(userInput).doWork();
-                System.in.read();
+                //System.in.read();
 
             }
             catch(NullPointerException ex)
@@ -114,11 +113,11 @@ public class App {
 
             //executar o comando
             stmt = con.createStatement();
-            rs=stmt.executeQuery(SELECT_CMD);
+            rs=stmt.executeQuery("select nome from COLONO");
 
             //iterar no resultado
             while(rs.next())
-                System.out.print(rs.getString("nome"));
+                System.out.println(rs.getString("nome"));
             System.out.println();
         }
         catch(SQLException sqlex)
