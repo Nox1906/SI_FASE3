@@ -398,7 +398,7 @@ public class Database {
         }
         return result;
     }
-
+    //Obtem representante que respeite contagem
     public ArrayList<Colono> getRepresentante(int numberOfColono) throws SQLException{
         ArrayList<Colono> result = new ArrayList<>();
         try {
@@ -425,7 +425,6 @@ public class Database {
             connection.rollback();
         }
         return result;
-
     }
 
     //Devolve lista de encarregados de educação com mais do que determinado um determinado numero de dependentes

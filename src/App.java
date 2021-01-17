@@ -48,7 +48,7 @@ public class App {
         __dbMethods.put(Option.CHANGE_CHECK, this::changeCheck);
 
     }
-
+    //Cancela atividade
     private void cancelActivity() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero da actividade: ");
@@ -62,7 +62,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //remover monitor
     private void removeMonitor() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero do monitor: ");
@@ -76,7 +76,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Trocar monitor de equipa
     private void changeTeamMonitor() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero do monitor: ");
@@ -94,7 +94,8 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista atividades pelo caracter de obrigatoriadade introduzido com x nº de participantes indicados
+    //pelo utilizador
     private void listActivityPM() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nObrigatoriedade (opcional|obrigatorio): ");
@@ -120,7 +121,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //pesquisa atividades realizadas por grupo inserido
     private void listActivityGN() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNome do grupo (sem acentos): ");
@@ -134,7 +135,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista representates de equipas que têm mais de 4 colonos
     private void listNameRepresentante() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero de colonos: ");
@@ -164,7 +165,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista atividades por periodo
     private void listActivityPeriod() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nHora inicial (HH:MM:SS): ");
@@ -181,7 +182,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Mudar restrições
     private void changeCheck() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNova duracao: ");
