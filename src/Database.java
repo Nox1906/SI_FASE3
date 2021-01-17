@@ -116,11 +116,13 @@ public class Database {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, colono.equipa);
             ResultSet result = preparedStatement.executeQuery();
+            //valida se a equipa existe
             if(!result.next()){
                 System.out.println(FRIENDLY_MESSAGES.TEAM_NOT_FOUND.message);
                 connection.rollback();
                 return false;
             }
+            //valida se a equipa está cheia
             if (isEquipaFull(
                     result.getString("grupo"),
                     result.getInt("Count_Colonos"))) {
@@ -128,6 +130,7 @@ public class Database {
                 connection.rollback();
                 return false;
             }
+            //valida se a idade do colono respeita a restição do grupo
             if(!isColonoInGrupoAge(colono, new Grupo(
                                 result.getString("grupo"),
                                 result.getInt("idademinima"),
@@ -175,11 +178,13 @@ public class Database {
             PreparedStatement prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, num_equipa);
             ResultSet result = prepareStatement.executeQuery();
+            //valida se a nova equipa existe
             if(!result.next()){
                 System.out.println(FRIENDLY_MESSAGES.NEW_TEAM_NOT_FOUND.message);
                 connection.rollback();
                 return false;
             }
+            //valida se a nova equipa está cheia
             if (isEquipaFull(
                     result.getString("grupo"),
                     result.getInt("Count_Colonos"))) {
@@ -187,18 +192,19 @@ public class Database {
                 connection.rollback();
                 return false;
             }
-
             // Informação de colono
             query = "SELECT * FROM COLONO WHERE numero = ?";
             prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, num_colono);
             ResultSet res = prepareStatement.executeQuery();
+            //valida se o colono existe
             if(!res.next()){
                 System.out.println(FRIENDLY_MESSAGES.COLONO_NOT_FOUND.message);
                 connection.rollback();
                 return false;
             }
             Colono colono = createColonoWithResultSet(res);
+            //valida se a idade do colono respeita a restrição
             if(!isColonoInGrupoAge(colono, new Grupo(
                     result.getString("grupo"),
                     result.getInt("idademinima"),
@@ -207,11 +213,12 @@ public class Database {
                 connection.rollback();
                 return false;
             }
-            //Numero de colonos na sua equipa
+            //Conta número de colonos da equipa atual
             query = "SELECT COUNT(equipa) AS Count_Colonos FROM COLONO WHERE equipa = ? GROUP BY equipa";
             prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, colono.equipa);
             res = prepareStatement.executeQuery();
+            //Valida se a equipa do colono existe
             if(!res.next()){
                 System.out.println(FRIENDLY_MESSAGES.OLD_TEAM_NOT_FOUND.message);
                 connection.rollback();
@@ -263,11 +270,6 @@ public class Database {
             preparedStatement.executeUpdate();
             //Elimina actividade de ACTIVIDADEDESPORTIVA
             query = "DELETE FROM ACTIVIDADEDESPORTIVA WHERE referencia = ?";
-            preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setInt(1, num_activity);
-            preparedStatement.executeUpdate();
-            //Elimina actividade de ACTIVIDADE ???????????
-            query = "DELETE FROM ACTIVIDADE WHERE referencia = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_activity);
             preparedStatement.executeUpdate();
@@ -343,6 +345,7 @@ public class Database {
     }
     //Devolve lista de actividades consoante nr de participantes e tipo de participatição
     public ArrayList<Activity> getActivities(String participation, int participants) throws SQLException{
+        //Array list com resultados
         ArrayList<Activity> result = new ArrayList<>();
         try {
             open_connection();
@@ -355,6 +358,7 @@ public class Database {
             preparedStatement.setString(1, participation);
             preparedStatement.setInt(2, participants);
             ResultSet res = preparedStatement.executeQuery();
+            //Adiciona ao espaço de resultados os dados que respeitam os parametros passados
             while (res.next()){
                 result.add(createActivityWithResultSet(res));
             }
@@ -369,6 +373,7 @@ public class Database {
 
     //Devolve lista de todas as actividades de determinado grupo
     public ArrayList<Activity> getActivities(String grupo_nome) throws SQLException{
+        //Array list com resultados
         ArrayList<Activity> result = new ArrayList<>();
         try {
             open_connection();
@@ -381,6 +386,7 @@ public class Database {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, grupo_nome);
             ResultSet res = preparedStatement.executeQuery();
+            //Adiciona ao espaço de resultados os dados que respeitam os parametros passados
             while (res.next()){
                 result.add(createActivityWithResultSet(res));
             }
@@ -395,18 +401,22 @@ public class Database {
 
     //Devolve lista de encarregados de educação com mais do que determinado um determinado numero de dependentes
     public ArrayList<Pessoa> getEEducaocao(int numberOfColono) throws SQLException{
+        //Array list com resultados
         ArrayList<Pessoa> result = new ArrayList<>();
         try {
             open_connection();
             connection.setAutoCommit(false);
-            String query = "SELECT PESSOA.* " +
+            String query = "SELECT * " +
+                           "FROM PESSOA " +
+                           "INNER JOIN (SELECT eeducacao, COUNT (eeducacao) AS Count_eeducacao " +
                            "FROM COLONO " +
-                           "INNER JOIN PESSOA ON PESSOA.numero = COLONO.eeducacao " +
-                           "GROUP BY PESSOA.numero, PESSOA.nome, PESSOA.email, PESSOA.endereço, PESSOA.ntelefone " +
-                           "HAVING COUNT(eeducacao) > ?";
+                           "GROUP BY eeducacao " +
+                           "HAVING COUNT (eeducacao) > ?) ED ON ED.eeducacao = PESSOA.numero " +
+                           "order by 1";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, numberOfColono);
             ResultSet res = preparedStatement.executeQuery();
+            //Adiciona ao espaço de resultados os dados que respeitam os parametros passados
             while (res.next()){
                 result.add(createPessoaWithResultSet(res));
             }
@@ -419,8 +429,11 @@ public class Database {
         return result;
     }
 
+
+
     //Devolve lista de todas as actividades que não se realizaram dentro dum determinado periodo
     public ArrayList<Activity> getActivities(String horainicial, String horafinal) throws SQLException{
+        //Array list com resultados
         ArrayList<Activity> result = new ArrayList<>();
         try {
             open_connection();
@@ -433,6 +446,7 @@ public class Database {
             preparedStatement.setString(1, horainicial);
             preparedStatement.setString(2, horafinal);
             ResultSet res = preparedStatement.executeQuery();
+            //Adiciona ao espaço de resultados os dados que respeitam os parametros passados
             while (res.next()){
                 result.add(createActivityWithResultSet(res));
             }
