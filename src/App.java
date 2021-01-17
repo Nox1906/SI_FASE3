@@ -23,7 +23,7 @@ public class App {
         CHANGE_TEAM_MONITOR,
         LIST_ACTIVITIES_PM,
         LIST_ACTIVITIES_GN,
-        LIST_NAME_EE,
+        LIST_NAME_REPRESENTANT,
         LIST_NAME_ADDRESS_EE,
         LIST_ACTIVITY_PERIOD,
         CHANGE_CHECK
@@ -42,7 +42,7 @@ public class App {
         __dbMethods.put(Option.CHANGE_TEAM_MONITOR, this::changeTeamMonitor);
         __dbMethods.put(Option.LIST_ACTIVITIES_PM, this::listActivityPM);
         __dbMethods.put(Option.LIST_ACTIVITIES_GN, this::listActivityGN);
-        __dbMethods.put(Option.LIST_NAME_EE, this::listNameEE);
+        __dbMethods.put(Option.LIST_NAME_REPRESENTANT, this::listNameRepresentante);
         __dbMethods.put(Option.LIST_NAME_ADDRESS_EE, this::listNameAdressEE);
         __dbMethods.put(Option.LIST_ACTIVITY_PERIOD, this::listActivityPeriod);
         __dbMethods.put(Option.CHANGE_CHECK, this::changeCheck);
@@ -135,15 +135,15 @@ public class App {
         }
     }
 
-    private void listNameEE() {
+    private void listNameRepresentante() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero de colonos: ");
         int numero_colonos = s.nextInt();
         s.nextLine();
         try {
-            ArrayList<Pessoa> Pessoas = __db.getEEducaocao(numero_colonos);
-            for (Pessoa pessoa: Pessoas) {
-                System.out.printf("\n%s", pessoa.nome);
+            ArrayList<Colono> Colonos = __db.getRepresentante(numero_colonos);
+            for (Colono colono: Colonos) {
+                System.out.printf("\n%s", colono.nome);
             }
         } catch (SQLException throwables) {
             System.out.println(throwables.getMessage());
@@ -321,7 +321,7 @@ public class App {
             System.out.println("6. Mudar Monitor da Equipa.");
             System.out.println("7. Lista activdades pela obrigatoriedade e numero de participantes");
             System.out.println("8. Lista actividade pelo nome do grupo.");
-            System.out.println("9. Lista nomes de Encarregado de Educacao com mais de X colonos.");
+            System.out.println("9. Lista nomes de Representantes responsaveis por X colonos.");
             System.out.println("10. Lista nomes e moradas de Encarregado de Educacao com mais de X colonos.");
             System.out.println("11. Lista de actividades que nao ocorreram num determinado periodo");
             System.out.println("12. Mudar o numero maximo de horas por actividade.");

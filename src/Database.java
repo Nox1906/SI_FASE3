@@ -399,6 +399,35 @@ public class Database {
         return result;
     }
 
+    public ArrayList<Colono> getRepresentante(int numberOfColono) throws SQLException{
+        ArrayList<Colono> result = new ArrayList<>();
+        try {
+            open_connection();
+            connection.setAutoCommit(false);
+            String query = "SELECT * " +
+                    "FROM COLONO " +
+                    "WHERE numero IN (SELECT colono " +
+                    "FROM REPRESENTANTE " +
+                    "INNER JOIN COLONO ON COLONO.equipa = REPRESENTANTE.equipa " +
+                    "GROUP by REPRESENTANTE.equipa, REPRESENTANTE.colono " +
+                    "HAVING COUNT(COLONO.equipa) > ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, numberOfColono);
+            ResultSet res = preparedStatement.executeQuery();
+            //Adiciona ao espaço de resultados os dados que respeitam os parametros passados
+            while (res.next()){
+                result.add(createColonoWithResultSet(res));
+            }
+            connection.commit();
+            return result;
+        } catch (SQLException throwables) {
+            System.out.println(FRIENDLY_MESSAGES.FAILED_TO_RETRIEVE_ACTIVITIES.message);
+            connection.rollback();
+        }
+        return result;
+
+    }
+
     //Devolve lista de encarregados de educação com mais do que determinado um determinado numero de dependentes
     public ArrayList<Pessoa> getEEducaocao(int numberOfColono) throws SQLException{
         //Array list com resultados
@@ -491,6 +520,7 @@ public class Database {
         }
         return false;
     }
+
 }
 
 
