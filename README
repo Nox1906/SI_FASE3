@@ -1,2 +1,7 @@
+##From the project folder run the following commands
+
+## This one compiles
 javac -cp .\lib\mssql-jdbc-7.2.2.jre8.jar -d .\out\ .\src\*
+
+## This one runs the project
 java -cp ".\lib\mssql-jdbc-7.2.2.jre8.jar;.\out" App
