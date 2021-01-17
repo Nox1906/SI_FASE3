@@ -1,4 +1,4 @@
-public class Equipa {
+public class Equipa { //?????????
     public int numero, monitor;
     public String grupo, designacao;
     public int numero_elementos;

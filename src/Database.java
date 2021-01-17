@@ -3,9 +3,12 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class Database {
+    //URL de ligação
     private String connectionString;
+    //Objeto de ligação à BD
     private Connection connection = null;
 
+    //Mensagens de erro
     private enum FRIENDLY_MESSAGES {
         TEAM_FULL("Equipa cheia."),
         AGE_RESTRICTED("Fora da idade do grupo."),
@@ -27,35 +30,37 @@ public class Database {
         }
     }
 
+    //Construtor de Database
     public Database(String connectionString){
         this.connectionString = connectionString;
     }
 
-
+    //Estabelece ligação à fonte de BD
     public void open_connection() throws SQLException {
         if (connection == null)
             connection = DriverManager.getConnection(getConnectionString());
     }
-
+    //Fecha ligação à BD
     public void close_connection() throws SQLException {
         if (connection != null) {
             connection.close();
             connection = null;
         }
     }
-
+    //Devolve URL de ligação à BD
     public String getConnectionString(){
         return connectionString;
     }
-
+    //Atribui URL de ligação à BD
     public void setConnectionString(String s){
         connectionString = s;
     }
 
+    //Verifica se idade do colono cumpre restrição do grupo
     private boolean isColonoInGrupoAge(Colono colono, Grupo grupo){
         return grupo.idademaxima >= colono.idade && colono.idade >= grupo.idademinima;
     }
-
+    //Verifica se numero de elementos cumpre com maximo permitido no grupo
     private boolean isEquipaFull(String grupo, int numero_elementos){
         return switch (grupo.toLowerCase()) {
             case "iniciados" -> numero_elementos >= 6;
@@ -64,7 +69,7 @@ public class Database {
             default -> true;
         };
     }
-
+    //Cria novo Colono a partir de ResultSet recebido como parametro
     private Colono createColonoWithResultSet(ResultSet resultSet) throws SQLException {
         return new Colono(
                 resultSet.getInt("numero"),
@@ -78,7 +83,7 @@ public class Database {
                 resultSet.getInt("equipa")
         );
     }
-
+    //Cria nova Pessoa a partir de ResultSet recebido como parametro
     private Pessoa createPessoaWithResultSet(ResultSet resultSet) throws SQLException {
         return new Pessoa(
                 resultSet.getInt("numero"),
@@ -88,7 +93,7 @@ public class Database {
                 resultSet.getString("email")
         );
     }
-
+    //Cria nova actividade a partir de ResultSet recebido como parametro
     private Activity createActivityWithResultSet(ResultSet resultSet) throws SQLException{
         return new Activity(
                 resultSet.getInt("referencia"),
@@ -97,11 +102,12 @@ public class Database {
                 resultSet.getString("descricao"),
                 resultSet.getString("participacao"));
     }
-
+    //Adiciona novo colono
     public boolean addColono(Colono colono) throws SQLException{
         try {
             open_connection();
             connection.setAutoCommit(false);
+            //Numero de colonos por equipa e limite de idades do respetivo grupo a que pertence
             String query = "SELECT EQUIPA.grupo, COUNT(equipa) AS Count_Colonos, GRUPO.idademinima, GRUPO.idademaxima FROM EQUIPA" +
                            "INNER JOIN GRUPO on EQUIPA.grupo = GRUPO.nome " +
                            "LEFT JOIN COLONO on EQUIPA.numero = COLONO.equipa " +
@@ -130,6 +136,7 @@ public class Database {
                 connection.rollback();
                 return false;
             }
+            //Insere novo colono
             query = "INSERT INTO COLONO VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, colono.numero);
@@ -146,19 +153,20 @@ public class Database {
                 connection.rollback();
                 return false;
             }
-            connection.commit();
+            connection.commit(); //confirma transação
             return true;
         } catch (SQLException throwables) {
             System.out.println(FRIENDLY_MESSAGES.FAILED_TO_ADD_COLONO.message);
-            connection.rollback();
+            connection.rollback(); //reverte modificações
         }
         return false;
     }
-
+    //Troca um colono de equipa
     public boolean changeEquipa(int num_colono, int num_equipa) throws SQLException {
         try {
             open_connection();
             connection.setAutoCommit(false);
+            //Numero de colonos por equipa e limite de idades do respetivo grupo a que pertence
             String query = "SELECT EQUIPA.grupo, COUNT(equipa) AS Count_Colonos, GRUPO.idademinima, GRUPO.idademaxima FROM EQUIPA " +
                            "INNER JOIN GRUPO on EQUIPA.grupo = GRUPO.nome " +
                            "LEFT JOIN COLONO on EQUIPA.numero = COLONO.equipa " +
@@ -180,7 +188,7 @@ public class Database {
                 return false;
             }
 
-            // Get colono info
+            // Informação de colono
             query = "SELECT * FROM COLONO WHERE numero = ?";
             prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, num_colono);
@@ -199,7 +207,7 @@ public class Database {
                 connection.rollback();
                 return false;
             }
-
+            //Numero de colonos na sua equipa
             query = "SELECT COUNT(equipa) AS Count_Colonos FROM COLONO WHERE equipa = ? GROUP BY equipa";
             prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, colono.equipa);
@@ -209,7 +217,7 @@ public class Database {
                 connection.rollback();
                 return false;
             }
-
+            //Cancela todas as atividades se equipa atual do colono ficar sem elementos
             if (res.getInt("Count_Colonos") == 1){
                 query = "SELECT referencia FROM ACTIVIDADE_EQUIPA WHERE equipa = ?";
                 prepareStatement = connection.prepareStatement(query);
@@ -219,7 +227,7 @@ public class Database {
                     cancelActivity(res.getInt("referencia"));
                 }
             }
-
+            //Actualiza equipa do colono
             query = "UPDATE COLONO SET equipa = ? WHERE numero = ?";
             prepareStatement = connection.prepareStatement(query);
             prepareStatement.setInt(1, num_equipa);
@@ -238,27 +246,27 @@ public class Database {
         }
         return false;
     }
-
+    //Cancela uma actividade atraves da sua referencia percorrendo todas as relações por ordem de dependência
     public boolean cancelActivity(int num_activity) throws SQLException{
         try {
             open_connection();
             connection.setAutoCommit(false);
-            // Remove all acti
+            //Elimina actividade de ACTIVIDADE_MONITOR
             String query = "DELETE FROM ACTIVIDADE_MONITOR WHERE referencia = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_activity);
             preparedStatement.executeUpdate();
-
+            //Elimina actividade de ACTIVIDADE_EQUIPA
             query = "DELETE FROM ACTIVIDADE_EQUIPA WHERE referencia = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_activity);
             preparedStatement.executeUpdate();
-
+            //Elimina actividade de ACTIVIDADEDESPORTIVA
             query = "DELETE FROM ACTIVIDADEDESPORTIVA WHERE referencia = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_activity);
             preparedStatement.executeUpdate();
-
+            //Elimina actividade de ACTIVIDADE ???????????
             query = "DELETE FROM ACTIVIDADE WHERE referencia = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_activity);
@@ -272,30 +280,30 @@ public class Database {
         }
         return false;
     }
-
+    //Remove um monitor
     public boolean removeMonitor(int num_monitor) throws SQLException {
         try {
             open_connection();
             connection.setAutoCommit(false);
-            // Update monitors with this monitor as co-monitor to null
+            // Actualiza associação do monitor como co-monitor
             String query = "UPDATE MONITOR SET comonitor = null WHERE comonitor = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
             preparedStatement.executeUpdate();
 
-            // Update activities with this monitor as monitor to null
+            // Remove monitor das respetivas actividades
             query = "DELETE FROM ACTIVIDADE_MONITOR WHERE monitor = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
             preparedStatement.executeUpdate();
 
-            // Update teams with this monitor as monitor to null
+            // Remove monitor das respetivas equipas
             query = "UPDATE EQUIPA SET monitor = null WHERE monitor = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
             preparedStatement.executeUpdate();
 
-            // Remove monitor from monitor table
+            // Remove monitor da tabela MONITOR
             query = "DELETE FROM MONITOR WHERE numero = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
@@ -309,16 +317,17 @@ public class Database {
         }
         return false;
     }
-
+    //Troca um monitor de equipa
     public boolean changeTeamMonitor(int num_team, int num_monitor) throws SQLException{
         try {
             open_connection();
             connection.setAutoCommit(false);
+            //Actualiza monitor de uma equipa para null
             String query = "UPDATE EQUIPA SET monitor = null WHERE monitor = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
             preparedStatement.executeUpdate();
-
+            //Actualiza monitor de uma equipa
             query = "UPDATE EQUIPA SET monitor = ? WHERE numero = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, num_monitor);
@@ -332,9 +341,7 @@ public class Database {
         }
         return false;
     }
-
-
-
+    //Devolve lista de actividades consoante nr de participantes e tipo de participatição
     public ArrayList<Activity> getActivities(String participation, int participants) throws SQLException{
         ArrayList<Activity> result = new ArrayList<>();
         try {
@@ -360,13 +367,7 @@ public class Database {
         return result;
     }
 
-    //--2f Liste todas as actividades realizadas pelas equipas dos iniciados.
-    //    SELECT DISTINCT ACTIVIDADE.designacao, ACTIVIDADE.descricao
-    //    FROM ACTIVIDADE
-    //    INNER JOIN ACTIVIDADE_EQUIPA ON ACTIVIDADE_EQUIPA.referencia = ACTIVIDADE.referencia
-    //    INNER JOIN EQUIPA ON EQUIPA.numero = ACTIVIDADE_EQUIPA.equipa
-    //    WHERE EQUIPA.grupo LIKE 'iniciados'
-
+    //Devolve lista de todas as actividades de determinado grupo
     public ArrayList<Activity> getActivities(String grupo_nome) throws SQLException{
         ArrayList<Activity> result = new ArrayList<>();
         try {
@@ -392,23 +393,7 @@ public class Database {
         return result;
     }
 
-    //--2g
-    //
-    //    SELECT PESSOA.nome
-    //    FROM COLONO
-    //    INNER JOIN PESSOA on PESSOA.numero = COLONO.eeducacao
-    //    group by PESSOA.nome
-    //    HAVING COUNT(eeducacao) > 4;
-
-    //--3c Apresente o nome dos encarregados de educacao e o endereco com mais do que
-    //--   um educando. Faca uso de uma interrogacao correlacionada.
-    //SELECT PESSOA.nome, PESSOA.endereço
-    //FROM PESSOA
-    //INNER JOIN (SELECT eeducacao, COUNT (eeducacao) AS Count_eeducacao
-    //			FROM COLONO
-    //			GROUP BY eeducacao
-    //			HAVING COUNT (eeducacao) > 1) ED ON ED.eeducacao = PESSOA.numero
-    //order by 1
+    //Devolve lista de encarregados de educação com mais do que determinado um determinado numero de dependentes
     public ArrayList<Pessoa> getEEducaocao(int numberOfColono) throws SQLException{
         ArrayList<Pessoa> result = new ArrayList<>();
         try {
@@ -434,13 +419,7 @@ public class Database {
         return result;
     }
 
-    //--3e Mostre as actividades que nao se realizaram num determinado perıodo de tempo,
-    //--   por exemplo entre as 11h e as 12h.
-    //    SELECT designacao,descricao, horainicial, horafinal
-    //    FROM ACTIVIDADE
-    //    INNER JOIN ACTIVIDADE_EQUIPA ON ACTIVIDADE_EQUIPA.referencia = ACTIVIDADE.referencia
-    //    WHERE horainicial > CAST('12:00:00' AS TIME) OR horafinal < CAST('11:00:00' AS TIME)
-
+    //Devolve lista de todas as actividades que não se realizaram dentro dum determinado periodo
     public ArrayList<Activity> getActivities(String horainicial, String horafinal) throws SQLException{
         ArrayList<Activity> result = new ArrayList<>();
         try {
@@ -466,11 +445,12 @@ public class Database {
         return result;
     }
 
-
+    //Altera restrição do atributo duração da tabela ACTIVIDADE
     public boolean alterActivityRestriction(int new_duration) throws SQLException {
         try {
             open_connection();
             connection.setAutoCommit(false);
+            //Nome da restrição do atributo duração
             String query = "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
                            "WHERE TABLE_NAME='ACTIVIDADE' AND CONSTRAINT_NAME LIKE '%durac%'";
             Statement statement = connection.createStatement();
@@ -481,11 +461,11 @@ public class Database {
                 return false;
             }
             String restriction_name = result.getString("CONSTRAINT_NAME");
-
+            //Elimina restrição
             query = String.format("ALTER TABLE ACTIVIDADE DROP CONSTRAINT %s", restriction_name);
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.executeUpdate();
-
+            //Adiciona restrição com novo valor
             query = "ALTER TABLE ACTIVIDADE ADD CHECK (duracao >= 0 AND duracao <= " + new_duration + ")" ;
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.executeUpdate();

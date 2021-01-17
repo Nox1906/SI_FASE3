@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class App {
+
     interface DbWorker {
         void doWork() throws SQLException;
     }
@@ -12,7 +13,7 @@ public class App {
     private static App __instance = null;
     private static Database __db = null;
     private HashMap<Option, DbWorker> __dbMethods;
-
+    //Lista de operações
     enum Option {
         UNKNOWN,
         EXIT,
@@ -28,13 +29,11 @@ public class App {
         LIST_ACTIVITY_PERIOD,
         CHANGE_CHECK
     }
-
-    ;
-
+    //Construtor
     private App() {
         __db = new Database("jdbc:sqlserver://10.62.73.87:1433;user=L3NG_1;password=L3NG_1;databaseName=L3NG_1");
         __dbMethods = new HashMap<Option, DbWorker>();
-
+        //Insere operações no hashmap __dbMethods
         __dbMethods.put(Option.ADD_COLONO, this::addColono);
         __dbMethods.put(Option.CHANGE_COLONO_TEAM, this::changeColonoTeam);
         __dbMethods.put(Option.CANCEL_ACTIVITY, this::cancelActivity);
@@ -48,7 +47,7 @@ public class App {
         __dbMethods.put(Option.CHANGE_CHECK, this::changeCheck);
 
     }
-
+    //Cancela actividade
     private void cancelActivity() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero da actividade: ");
@@ -62,7 +61,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Remove monitor
     private void removeMonitor() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero do monitor: ");
@@ -76,7 +75,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Troca um monitor de equipa
     private void changeTeamMonitor() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero do monitor: ");
@@ -94,7 +93,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista actividades consoante nr de participantes e tipo de participatição
     private void listActivityPM() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nObrigatoriedade (opcional|obrigatorio): ");
@@ -120,7 +119,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista actividade de um grupo
     private void listActivityGN() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNome do grupo (sem acentos): ");
@@ -134,7 +133,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista nome de encarregados de educação com mais do que determinado numero de dependentes
     private void listNameEE() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero de colonos: ");
@@ -149,7 +148,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista endereco e nome de encarregados de educação com mais do que determinado numero de dependentes
     private void listNameAdressEE() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero de colonos: ");
@@ -164,7 +163,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Lista actividades que não se realizaram dentro dum determinado periodo
     private void listActivityPeriod() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nHora inicial (HH:MM:SS): ");
@@ -181,7 +180,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Altera restrição do atributo duração da tabela ACTIVIDADE
     private void changeCheck() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNova duracao: ");
@@ -194,7 +193,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Muda colono de equipa
     private void changeColonoTeam() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero colono: ");
@@ -211,7 +210,7 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Adiciona novo colono
     private void addColono() {
         Scanner s = new Scanner(System.in);
         System.out.print("\nNumero: ");
@@ -274,14 +273,14 @@ public class App {
             System.out.println(throwables.getMessage());
         }
     }
-
+    //Cria instância de App
     public static App getInstance() {
         if (__instance == null) {
             __instance = new App();
         }
         return __instance;
     }
-
+    //Inicia programa
     public void Run() throws Exception {
         try {
             __db.open_connection();
@@ -294,7 +293,7 @@ public class App {
                     __dbMethods.get(userInput).doWork();
                     System.in.read();
                 } catch (NullPointerException ex) {
-                    //Nothing to do. The option was not a valid one. Read another.
+
                 }
 
             } while (userInput != Option.EXIT);
@@ -302,13 +301,13 @@ public class App {
             __db.close_connection();
         }
     }
-
+    //Limpa consola
     private final static void clearConsole() throws Exception {
         for (int y = 0; y < 25; y++) //console is 80 columns and 25 lines
             System.out.println("\n");
     }
 
-
+    //Menu de opções
     private static Option displayMenu() {
         Option option = Option.UNKNOWN;
         try {
@@ -330,7 +329,7 @@ public class App {
             int result = s.nextInt();
             option = Option.values()[result];
         } catch (RuntimeException ex) {
-            //nothing to do.
+
         }
 
         return option;
