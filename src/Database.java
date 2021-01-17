@@ -360,7 +360,7 @@ public class Database {
         return result;
     }
 
-    //--2f Liste todas as actividades realizadas pelas equipas dos “iniciados”.
+    //--2f Liste todas as actividades realizadas pelas equipas dos iniciados.
     //    SELECT DISTINCT ACTIVIDADE.designacao, ACTIVIDADE.descricao
     //    FROM ACTIVIDADE
     //    INNER JOIN ACTIVIDADE_EQUIPA ON ACTIVIDADE_EQUIPA.referencia = ACTIVIDADE.referencia

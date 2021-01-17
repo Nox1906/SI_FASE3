@@ -1,0 +1,2 @@
+javac -cp .\lib\mssql-jdbc-7.2.2.jre8.jar -d .\out\ .\src\*
+java -cp ".\lib\mssql-jdbc-7.2.2.jre8.jar;.\out" App

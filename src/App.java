@@ -97,11 +97,14 @@ public class App {
 
     private void listActivityPM() {
         Scanner s = new Scanner(System.in);
-        System.out.print("\nObrigatoriedade (opcional|obrigatório): ");
+        System.out.print("\nObrigatoriedade (opcional|obrigatorio): ");
         String participation = s.nextLine();
-        if(!(participation.equals("opcional") || participation.equals("obrigatório"))){
-            System.out.println("Opção invalida. (opcional|obrigatório)");
+        if(!(participation.equals("opcional") || participation.equals("obrigatorio"))){
+            System.out.println("Opcao invalida. (opcional|obrigatorio)");
             return;
+        }
+        if (participation.equals("obrigatorio")){
+            participation = "obrigatório";
         }
 
         System.out.print("\nNumero de participantes: ");
@@ -318,8 +321,8 @@ public class App {
             System.out.println("6. Mudar Monitor da Equipa.");
             System.out.println("7. Lista activdades pela obrigatoriedade e numero de participantes");
             System.out.println("8. Lista actividade pelo nome do grupo.");
-            System.out.println("9. Lista nomes de Encarregado de Educação com mais de X colonos.");
-            System.out.println("10. Lista nomes e moradas de Encarregado de Educação com mais de X colonos.");
+            System.out.println("9. Lista nomes de Encarregado de Educacao com mais de X colonos.");
+            System.out.println("10. Lista nomes e moradas de Encarregado de Educacao com mais de X colonos.");
             System.out.println("11. Lista de actividades que nao ocorreram num determinado periodo");
             System.out.println("12. Mudar o numero maximo de horas por actividade.");
             System.out.print(">");
@@ -336,6 +339,5 @@ public class App {
 
     public static void main(String[] args) throws SQLException, Exception {
         App.getInstance().Run();
-
     }
 }
